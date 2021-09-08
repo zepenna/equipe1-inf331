@@ -51,7 +51,7 @@
 ## Detalhamento das Interfaces
 
 **Inteface IRequest**
-
+![IRequest](images/n2-components/IRequest.png)
 > Papel: Interface requerida que pede por dados de produtos e clientes na forma de lista.
 
 Método | Objetivo
@@ -59,7 +59,7 @@ Método | Objetivo
 `getProcessedRequests` | `pede por uma lista de dados pré-processados`.
 
 **Inteface IRequestProductList**
-
+![IRequestProductList](images/n2-components/IRequestProductList.png)
 > Papel: Interface provida que fornece um array de produtos, para que seja usado como array de referência.
 
 Método | Objetivo
@@ -67,7 +67,8 @@ Método | Objetivo
 `getProductList` | `fornece um array de produtos`.
 
 
-**Inteface IRequestCustomerListt**
+**Inteface IRequestCustomerList**
+![IRequestCustomerList](images/n2-components/IRequestCustomerList.png)
 > Papel: Interface provida que fornece um array de customeId, para que seja usado na montagem de mensagens de campanhas de desconto. 
 
 Método | Objetivo
@@ -88,7 +89,7 @@ Método | Objetivo
 
 ## Detalhamento das Interfaces
 **Inteface IOffer**
-
+![IOffer](images/n2-components/IOffer.png)
 > Papel: Interface requerida que pede por ofertas de cada loja.
 
 Método | Objetivo
@@ -96,15 +97,15 @@ Método | Objetivo
 `requestOffer` | `pede por uma oferta de um lojista`.
 
 **Inteface IOfferProductList**
-
+![IOfferProductList](images/n2-components/IOfferProductList.png)
 > Papel: Interface provida que fornece a lista de produtos ofertados por `n` lojas.
 
 Método | Objetivo
 -------| --------
 `getOfferProductList` | `fornece uma lista de produtos ofertados pelas lojas`.
 
-**Inteface IOfferStoreDatatList**
-
+**Inteface IOfferStoreDataList**
+![IOfferStoreDataList](images/n2-components/IOfferStoreDataList.png)
 > Papel: Interface provida que fornece a lista de dados referente às lojas.
 
 Método | Objetivo
@@ -112,7 +113,7 @@ Método | Objetivo
 `getOfferStoreIdList` | `fornece uma lista que contém strings compostas por id da loja storeId, número de unidades inStock do produto e valor com desconto ofertado salesPrice`
 
 **Inteface IOfferCampaignDataList**
-
+![IOfferCampaignDataList](images/n2-components/IOfferCampaignDataList.png)
 > Papel: Interface provida que fornece a data final da campanha.
 
 Método | Objetivo
@@ -130,7 +131,7 @@ Método | Objetivo
 ## Detalhamento das Interfaces
 
 **Inteface IRankedProducts**
-
+![IRankedProducts](images/n2-components/IRankedProducts.png)
 > Papel: Interface provida que fornece a lista final de produtos rankeados por IA.
 
 Método | Objetivo
@@ -148,7 +149,7 @@ Método | Objetivo
 ## Detalhamento das Interfaces
 
 **Inteface ProvideRankedOffers**
-
+![ProvideRankedOffers](images/n2-components/ProvideRankedOffers.png)
 > Papel: Interface provida que fornece a mensagem final que será enviada aos clientes.
 
 Método | Objetivo
