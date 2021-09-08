@@ -14,7 +14,7 @@
 ## Diagrama do Processo de Distribuição de Ofertas
 ![DiagramaNivel1Ofertas](images/n2-components/DiagramaNivel1Ofertas.png)
 
-> O diagrama escolhido para análise foi o **Diagrama do Processo de Distribuição de Ofertas**.
+> O diagrama escolhido para análise foi o **Diagrama do Processo de Distribuição de Ofertas**.<br>
 
 # Nível 2
 
@@ -38,7 +38,7 @@
 
 ## Detalhamento dos Componentes:
 
-**Componente ExtractProductsList**
+**Componente ExtractProductsList**<br>
 > Papel: é responsável por receber a lista de produtos pré-processada pelo componente `ProcessCustomerRequests` e separar tal lista em um array de produtos pré-selecionados e em um array de clientes que assinalaram interesse em pelo menos ⅓ da lista de produtos previamente mencionada. 
 
 ![ExtractProductsList](images/n2-components/ExtractProductsList.png)
@@ -50,7 +50,7 @@
 
 ## Detalhamento das Interfaces
 
-**Inteface IRequest**
+**Inteface IRequest**<br>
 ![IRequest](images/n2-components/IRequest.png)
 > Papel: Interface requerida que pede por dados de produtos e clientes na forma de lista.
 
@@ -58,7 +58,7 @@ Método | Objetivo
 -------| --------
 `getProcessedRequests` | `pede por uma lista de dados pré-processados`.
 
-**Inteface IRequestProductList**
+**Inteface IRequestProductList**<br>
 ![IRequestProductList](images/n2-components/IRequestProductList.png)
 > Papel: Interface provida que fornece um array de produtos, para que seja usado como array de referência.
 
@@ -67,7 +67,7 @@ Método | Objetivo
 `getProductList` | `fornece um array de produtos`.
 
 
-**Inteface IRequestCustomerList**
+**Inteface IRequestCustomerList**<br>
 ![IRequestCustomerList](images/n2-components/IRequestCustomerList.png)
 > Papel: Interface provida que fornece um array de customeId, para que seja usado na montagem de mensagens de campanhas de desconto. 
 
@@ -76,7 +76,7 @@ Método | Objetivo
 `getCustomerList` | `fornece um array de produtos`.
 
 
-**Componente ProcessStoreOffer**
+**Componente ProcessStoreOffer**<br>
 > Papel: é responsável por processar cada uma das ofertas feitas por lojas, e separar e agrupar/destacar os produtos, dados da loja e dados da campanha contidos nas ofertas.
 
 ![ProcessStoreOffer](images/n2-components/ProcessStoreOffer.png)
@@ -88,7 +88,7 @@ Método | Objetivo
 > IOfferCampaignDataList<br>
 
 ## Detalhamento das Interfaces
-**Inteface IOffer**
+**Inteface IOffer**<br>
 ![IOffer](images/n2-components/IOffer.png)
 > Papel: Interface requerida que pede por ofertas de cada loja.
 
@@ -96,7 +96,7 @@ Método | Objetivo
 -------| --------
 `requestOffer` | `pede por uma oferta de um lojista`.
 
-**Inteface IOfferProductList**
+**Inteface IOfferProductList**<br>
 ![IOfferProductList](images/n2-components/IOfferProductList.png)
 > Papel: Interface provida que fornece a lista de produtos ofertados por `n` lojas.
 
@@ -104,7 +104,7 @@ Método | Objetivo
 -------| --------
 `getOfferProductList` | `fornece uma lista de produtos ofertados pelas lojas`.
 
-**Inteface IOfferStoreDataList**
+**Inteface IOfferStoreDataList**<br>
 ![IOfferStoreDataList](images/n2-components/IOfferStoreDataList.png)
 > Papel: Interface provida que fornece a lista de dados referente às lojas.
 
@@ -112,7 +112,7 @@ Método | Objetivo
 -------| --------
 `getOfferStoreIdList` | `fornece uma lista que contém strings compostas por id da loja storeId, número de unidades inStock do produto e valor com desconto ofertado salesPrice`
 
-**Inteface IOfferCampaignDataList**
+**Inteface IOfferCampaignDataList**<br>
 ![IOfferCampaignDataList](images/n2-components/IOfferCampaignDataList.png)
 > Papel: Interface provida que fornece a data final da campanha.
 
@@ -120,7 +120,7 @@ Método | Objetivo
 -------| --------
 `getOfferCampaignEndDate` | `fornece a data de término endDate da campanha`.
 
-**Componente RankOffersBasedOnReference**
+**Componente RankOffersBasedOnReference**<br>
 > Papel: é responsável fornecer uma lista de ofertas ranqueadas, de acordo com operações de IA .
 
 ![ProcessStoreOffer](images/n2-components/RankOffersBasedOnReference.png)
@@ -130,7 +130,7 @@ Método | Objetivo
 
 ## Detalhamento das Interfaces
 
-**Inteface IRankedProducts**
+**Inteface IRankedProducts**<br>
 ![IRankedProducts](images/n2-components/IRankedProducts.png)
 > Papel: Interface provida que fornece a lista final de produtos rankeados por IA.
 
@@ -138,7 +138,7 @@ Método | Objetivo
 -------| --------
 `getRankedProductsList` | `fornece uma lista de produtos ranqueados por operações de IA (e.g. opereções com base em Support-vector Machine ou Logistic Regression)`.
 
-**Componente AssembleOnSales**
+**Componente AssembleOnSales**<br>
 > Papel: é responsável fornecer a mensagens de campanha de ofertas que será recebida por clientes.
 
 ![ProcessStoreOffer](images/n2-components/AssembleOnSales.png)
@@ -148,7 +148,7 @@ Método | Objetivo
 
 ## Detalhamento das Interfaces
 
-**Inteface ProvideRankedOffers**
+**Inteface ProvideRankedOffers**<br>
 ![ProvideRankedOffers](images/n2-components/ProvideRankedOffers.png)
 > Papel: Interface provida que fornece a mensagem final que será enviada aos clientes.
 
