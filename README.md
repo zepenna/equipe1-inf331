@@ -285,3 +285,27 @@ Método | Objetivo
 -------| --------
 `getRankedOffers` | `fornece a mensagem final que será escrita no barramento para que os clientes as possam consumir`.
 
+## Diagrama do Nível 3
+
+> Protótipo no MIT APP Inventor:
+
+![Captura de Tela do Protótipo](images/appinventorui.jpg)
+![Componentes do Protótipo](images/appinventorcomponents.jpg)
+
+> Diagrama Referente ao Protótipo:
+
+![Modelo de diagrama no nível 3](images/Nivel3.jpg)
+
+### Detalhamento da interação de componentes
+
+* O componente GetProductsCampaignList recebe os produtos passíveis de receberem ofertas por lojistas cadastrados no marketplace. Ele disponibiliza os produtos obtidos através da interface IProductsCampaignList.
+
+* O componente ComputeProductData é responsável por ler os produtos recebidos e gerar modelos compatíveis com os componentes da GUI. Ele ainda inicia o evento que irá listar os produtos disponíveis para oferta na interface gráfica. Além disso, esse componente permite que se pesquise por um produto, por categoria ou palavra-chave, retornando os modelos que correspondam aos critérios de busca.
+
+* O componente ProductComponent é o responsável por exibir as informações dos produtos. Além disso, ele possui componentes internos que permitem receber os inputs necessários para que o lojista realize uma oferta, sendo eles o valor e a quantidade de produtos. Este componente possui ainda um botão como componente interno, que dispara o evento de envio de oferta.
+
+* O evento de envio de oferta é recebido pelo componente SendOffer, que receberá os dados inputados pelo lojista, relacionado com a sua oferta. Além disso, para que a oferta seja criada, é necessário que esse componente busque as informações do lojista autenticado, utilizando a interface provida pelo componente GetUserInfo. Após a obtenção dos dados do lojista autenticado e dos inputs da oferta, o componente é reponsável por publicar a oferta no barramento, enviando uma mensagem do tipo 'offer' para o tópico 'campaign/+/makeoffer/+'
+
+* Tem-se ainda o componente GetUserInfo que recebe as informações do usuário lojista autenticado de um componente externo. Essas informações são expostas através da interface IUserInfo, permitindo que o componente de envio de oferta (SendOffer), consuma esses dados para conseguir enviar uma oferta com sucesso.
+
+* Por fim há ainda dois componentes na interface que permitem filtros da lista de produtos. O primeiro deles permite filtros por categoria e o segundo permite filtros por palavra-chave.
