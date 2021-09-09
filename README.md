@@ -16,6 +16,135 @@
 
 > O diagrama escolhido para análise foi o **Diagrama do Processo de Distribuição de Ofertas**.<br>
 
+## Detalhamento dos Componentes:
+
+**Componente OfferDistribution**
+> Papel: O componente `OfferDistribution` recebe a lista de produtos mais desejados pelos clientes do Marketplace por meio da assinatura do tópico `products/mostwanted`, presente na interface `ReceiveProcessedRequests`. Ele ainda possui a responsabilidade enviar a mensagem de ofertas aos clientes através do tópico `campaign/campaignId/provideoffers` na interface `ProvideRankedOffers`. Por fim, por meio da interface `ReceiveOffer`, o componente assina o tópico `campaign/+/makeoffer/+` para receber as ofertas enviadas pelas lojas.
+
+![OfferDistribution](images/n2-components/OfferDistribution.png)
+
+## Interfaces:
+> ReceiveProcessedRequests<br>
+> ProvideRankedOffers<br>
+> ReceiveOffer<br>
+
+## Detalhamento das Interfaces
+
+**Inteface ReceiveProcessedRequests**
+
+> Papel: Interface que lê do barramento a lista de produtos mais desejados da {última quinzena}, juntamente com a lista de customers interessados por pelo menos ⅓ dos produtos listados.
+
+![ReceiveProcessedRequests](images/n2-components/ReceiveProcessedRequests.png)
+
+> Mensagem JSON utilizada na interface:
+
+**MWProducts**
+~~~json
+{
+    customers: [
+        customerId: string
+    ],
+    products: [
+        productId: string
+    ]
+}
+~~~
+
+**Inteface ProvideRankedOffers**
+
+> Papel: Interface que envia vetor de offers para barramento (e.g. informação alimenta serviço de e-mail).
+
+![ProvideRankedOffers](images/n2-components/ProvideRankedOffers1.png)
+
+> Mensagem JSON utilizada na interface:
+
+**OnSales**
+~~~json
+{
+    customers: [
+        customerId: string
+    ],
+    products: [
+        {
+         productId: string
+         store: {
+             storeId: string,
+             inStock: number,
+             salesPrice: number
+
+         }
+        }
+    ],
+    endDate: date
+}
+~~~
+
+**Inteface ReceiveOffer**
+
+> Papel: Interface que lê a offer do barramento, recebendo uma oferta de desconto das stores{n}.
+
+![ReceiveOffer](images/n2-components/ReceiveOffer.png)
+
+> Mensagem JSON utilizada na interface:
+
+**Offer**
+~~~json
+{
+    storeId: string,
+    productId: string,
+    salesPrice: number,
+    inStock: number
+}
+~~~
+
+**Componente Store**
+> Papel: O componente `Store` assina o tópico `campaign/+/notification`, presente na interface `CampaignEngage`, com o objetivo de receber informações sobre a campanha de ofertas vigente. Esse componente ainda é responsável por publicar ofertas de produtos através do tópico `capaign/+/makeoffer/+` na interface `MakeOffer`.
+
+![Store](images/n2-components/Store.png)
+
+## Interfaces:
+> CampaignEngage<br>
+> MakeOffer<br>
+
+## Detalhamento das Interfaces
+
+**Inteface CampaignEngage**
+
+> Papel: Interface que escuta o barramento a fim de identificar a campanha corrente.
+
+![CampaignEngage](images/n2-components/CampaignEngage.png)
+
+> Mensagem JSON utilizada na interface:
+
+**Campaign**
+~~~json
+{
+    campaignId: string,
+    campaignName: string,
+    campaignURL: string,
+    startDay: date,
+    daysOfDuration: number
+}
+~~~
+
+**Inteface MakeOffer**
+
+> Papel: Interface que envia offer para o barramento quando é lançada uma oferta de produto.
+
+![MakeOffer](images/n2-components/MakeOffer.png)
+
+> Mensagem JSON utilizada na interface:
+
+**Offer**
+~~~json
+{
+    storeId: string,
+    productId: string,
+    salesPrice: number,
+    inStock: number
+}
+~~~
+
 # Nível 2
 
 ## Diagrama do Nível 2
