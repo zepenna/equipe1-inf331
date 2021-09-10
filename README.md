@@ -10,18 +10,32 @@
 ## Diagramas Gerais do Nível 1
 
 ## Diagrama do Processo de Compra
-![DiagramaNivel1Compra](images/n2-components/DiagramaNivel1Compra.png)
+![DiagramaNivel1Compra](images/DiagramaNivel1Compra.png)
 ## Diagrama do Processo de Distribuição de Ofertas
-![DiagramaNivel1Ofertas](images/n2-components/DiagramaNivel1Ofertas.png)
+![DiagramaNivel1Ofertas](images/DiagramaNivel1Ofertas.png)
 
 > O diagrama escolhido para análise foi o **Diagrama do Processo de Distribuição de Ofertas**.<br>
+
+## Detalhamento de interação de componentes
+* O componente `Customer{n}` envia para o barramento de mensagens do tipo `Request` pelo tópico `{customerId/requestproduct}` através da interface `ReceiveProcessedRequests`.
+	*  Isso simula a ação de um cliente em demonstrar interesse por um produto (e.g. adicionar produto à uma lista de favoritos).
+* Então, tal evento é atendido por uma interface `ReceiveCustomerRequest` do componente `ProcessCutomerRequest`.
+    * Neste ponto, o componente `ReceiveCustomerRequest` assina um tópico de mensagens do tipo `#/requestproduct`, o que faz com que ele receba os interesses por produtos `Request` dos n clientes `Customer{n}`.
+* O componente `ProcessCutomerRequest` então processa os pedidos marcados como interessantes para os cliente, montando uma lista com os {20} produtos mais desejados, juntamente com uma lista de clientes que marcaram pelo menos {1/3} da lista de produtos como interessantes.
+* Em seguida o componente `ProcessCutomerRequest` envia tal lista de produtos e clientes em uma mensagem do tipo `MWProducts`, através da inteface `ProcessedCustomerRequests` para os componentes `Campaign` e `OfferDistribution`, por meio do tópico de mensagens `products/mostwanted`.
+    * O componente `Campaign` assina o tópico `products/mostwanted`, recebe a lista de produtos e clientes pela interface `ReceiveProcessedRequests` e então engatilha o início de uma nova campanha de ofertas por meio da interface `CampaignStart`, com o tópico de mensagens `campaign/{campaignId}/notification`.
+    * Já o componente `OfferDistribution` recebe a lista anteriormente citada, também usando a interface `ReceiveProcessedRequests` e tópico `products/mostwanted`, e a usa como lista de referência para operação de IA.
+* Pela interface `CampaingEngage` e o tópico `campaign/{campaignId}/notification` os componentes `Store{n}` entendem que há uma campanha corrente e que podem enviar lançes promocionais de seus produtos em mensagens do tipo `Offer`, através da interface `MakeOffer`, pelo tópico `campaign/{campaignId}/makeoffer/{offerId}`.
+* As mensagens do tipo `Offer` são enviadas para o barramento e lidas pelo componente `OfferDistribuition` que assina o tópico `campaign/+/makeoffer/+`.
+* Em posse das ofertas feitas por cada uma das n lojas, o componente `OfferDistribuition` monta uma lista de produtos em ofertas, a compara com a lista de produtos mais desejados pelos clientes e por meio de operações de IA ranqueia as ofertas das lojas e monta uma nova lista de ofertas ranqueadas e clientes em uma mensagem to tipo `OnSales`.
+* Após isso o componente `OfferDistribuition` envia a mensagem `OnSales` para o barramento utilizando o tópico `campaign/{campaignId}/provideoffers`, que é assinado pelos clientes utilizando o tópico `campaign/+/provideoffers`, finalizando assim o processo de distribuição de ofertas.
 
 ## Detalhamento dos Componentes:
 
 **Componente ProcessCustomerRequests**
 > Papel: O componente `ProcessCustomerRequests` recebe a requisição ou o interesse de produtos dos clientes através da da assinatura do tópico `#/requestproduct`, presente na interface `ReceiveCustomerRequests`. Ele ainda possui a responsabilidade enviar para o barramento, a lista de produtos mais desejados da última quinzena, juntamente com a lista de consumidores interessados por pelo menos 1/3 dos produtos listados, através da interface `ProcessedCustomerRequests`.
 
-![ProcessCustomerRequests](images/n2-components/ProcessCustomerRequests.png)
+![ProcessCustomerRequests](images/ProcessCustomerRequests.png)
 
 ## Interfaces:
 > ReceiveCustomerRequests<br>
@@ -33,7 +47,7 @@
 
 > Papel: Interface que recebe requests/interesse de produtos de {n} clientes do barramento, através da da assinatura do tópico `#/requestproduct`.
 
-![ReceiveCustomerRequests](images/n2-components/ReceiveCustomerRequests.png)
+![ReceiveCustomerRequests](images/ReceiveCustomerRequests.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -53,7 +67,7 @@
 
 > Interface que envia para o barramento, utilizando o tópico `products/mostwanted`, a lista de produtos mais desejados da última quinzena, juntamente com a lista de consumidores interessados por pelo menos 1/3 dos produtos listados.
 
-![ProcessedCustomerRequests](images/n2-components/ProcessedCustomerRequests.png)
+![ProcessedCustomerRequests](images/ProcessedCustomerRequests.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -76,7 +90,7 @@
 
 > Papel: O componente `Campaign` recebe do barramento a lista de produtos mais desejados da (última quinzena), juntamente com a lista de consumidores interessados por pelo menos 1/3 dos produtos listados, através da assinatura do tópico `products/mostwanted` e da interface `ReceiveProcessedRequests`, e retorna para o barramento a solicitação do início de uma nova campanha de ofertas, através da interface `CampaignStart`.  
 
-![Campaign](images/n2-components/Campaign.png)
+![Campaign](images/Campaign.png)
 
 ## Interfaces:
 > ReceiveProcessedRequests<br>
@@ -88,7 +102,7 @@
 
 > Papel: Interface que recebe do barramento a lista de produtos mais desejados da (última quinzena), juntamente com a lista de consumidores interessados por pelo menos 1/3 dos produtos listados, através da assinatura do tópico `products/mostwanted`.
 
-![ReceiveProcessedRequests](images/n2-components/ReceiveProcessedRequests.png)
+![ReceiveProcessedRequests](images/ReceiveProcessedRequests.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -110,7 +124,7 @@
 
 > Interface envia ao barramento a solicitação do início de uma nova campanha de ofertas, através da interface `CampaignStart` com o tópico `campaign/{campaignId}/notification`.
 
-![CampaignStart](images/n2-components/CampaignStart.png)
+![CampaignStart](images/CampaignStart.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -132,7 +146,7 @@
 
 > Papel: Interface que lê a offer do barramento, recebendo uma oferta de desconto das stores{n}.
 
-![ReceiveOffer](images/n2-components/ReceiveOffer.png)
+![ReceiveOffer](images/ReceiveOffer.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -149,7 +163,7 @@
 **Componente OfferDistribution**
 > Papel: O componente `OfferDistribution` recebe a lista de produtos mais desejados pelos clientes do Marketplace por meio da assinatura do tópico `products/mostwanted`, presente na interface `ReceiveProcessedRequests`. Ele ainda possui a responsabilidade enviar a mensagem de ofertas aos clientes através do tópico `campaign/campaignId/provideoffers` na interface `ProvideRankedOffers`. Por fim, por meio da interface `ReceiveOffer`, o componente assina o tópico `campaign/+/makeoffer/+` para receber as ofertas enviadas pelas lojas.
 
-![OfferDistribution](images/n2-components/OfferDistribution.png)
+![OfferDistribution](images/OfferDistribution.png)
 
 ## Interfaces:
 > ReceiveProcessedRequests<br>
@@ -162,7 +176,7 @@
 
 > Papel: Interface que lê do barramento a lista de produtos mais desejados da {última quinzena}, juntamente com a lista de customers interessados por pelo menos ⅓ dos produtos listados.
 
-![ReceiveProcessedRequests](images/n2-components/ReceiveProcessedRequests.png)
+![ReceiveProcessedRequests](images/ReceiveProcessedRequests.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -182,7 +196,7 @@
 
 > Papel: Interface que envia vetor de offers para barramento (e.g. informação alimenta serviço de e-mail).
 
-![ProvideRankedOffers](images/n2-components/ProvideRankedOffers1.png)
+![ProvideRankedOffers](images/ProvideRankedOffers1.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -211,7 +225,7 @@
 
 > Papel: Interface que lê a offer do barramento, recebendo uma oferta de desconto das stores{n}.
 
-![ReceiveOffer](images/n2-components/ReceiveOffer.png)
+![ReceiveOffer](images/ReceiveOffer.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -229,7 +243,7 @@
 **Componente Customer**
 > Papel: O componente `Customer` é através da interface `ReceiveRankedOffers` e com a assinatura do tópico `campaign/+/provideoffers`, ler a lista de ofertas do barramento, e através da interface `RequestProducts`, envia para o barramento mensagens com o tópico `{customeId}/requestproduct` representanado o interesse do consumidor por determinado produto.
 
-![OfferDistribution](images/n2-components/Customer.png)
+![OfferDistribution](images/Customer.png)
 
 ## Interfaces:
 > ReceiveRankedOffers<br>
@@ -241,7 +255,7 @@
 
 > Papel: Interface que lê do barramento a lista de ofertas do barramento, através da assinatura do tópico `campaign/+/provideoffers`.
 
-![ReceiveRankedOffers](images/n2-components/ReceiveRankedOffers.png)
+![ReceiveRankedOffers](images/ReceiveRankedOffers.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -273,7 +287,7 @@
 
 > Papel: Interface que envia para o barramento mensagens com o tópico `{customeId}/requestproduct` representanado o interesse do consumidor por determinado produto.
 
-![RequestProducts](images/n2-components/RequestProducts.png)
+![RequestProducts](images/RequestProducts.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -292,7 +306,7 @@
 **Componente Store**
 > Papel: O componente `Store` assina o tópico `campaign/+/notification`, presente na interface `CampaignEngage`, com o objetivo de receber informações sobre a campanha de ofertas vigente. Esse componente ainda é responsável por publicar ofertas de produtos através do tópico `capaign/+/makeoffer/+` na interface `MakeOffer`.
 
-![Store](images/n2-components/Store.png)
+![Store](images/Store.png)
 
 ## Interfaces:
 > CampaignEngage<br>
@@ -304,7 +318,7 @@
 
 > Papel: Interface que escuta o barramento a fim de identificar a campanha corrente.
 
-![CampaignEngage](images/n2-components/CampaignEngage.png)
+![CampaignEngage](images/CampaignEngage.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -323,7 +337,7 @@
 
 > Papel: Interface que envia offer para o barramento quando é lançada uma oferta de produto.
 
-![MakeOffer](images/n2-components/MakeOffer.png)
+![MakeOffer](images/MakeOffer.png)
 
 > Mensagem JSON utilizada na interface:
 
@@ -340,7 +354,7 @@
 # Nível 2
 
 ## Diagrama do Nível 2
-![DiagramaNivel2](images/n2-components/DiagramaNivel2.png)
+![DiagramaNivel2](images/DiagramaNivel2.png)
 
 ## Detalhamento de interação de componentes
 * O componente `OfferDistribution` assina o barramento de mensagens de tópico `products/mostwanted` através da interface `ReceiveProcessedRequests`
@@ -362,7 +376,7 @@
 **Componente ExtractProductsList**<br>
 > Papel: é responsável por receber a lista de produtos pré-processada pelo componente `ProcessCustomerRequests` e separar tal lista em um array de produtos pré-selecionados e em um array de clientes que assinalaram interesse em pelo menos ⅓ da lista de produtos previamente mencionada. 
 
-![ExtractProductsList](images/n2-components/ExtractProductsList.png)
+![ExtractProductsList](images/ExtractProductsList.png)
 
 ## Interfaces:
 > IRequest<br>
@@ -372,7 +386,7 @@
 ## Detalhamento das Interfaces
 
 **Inteface IRequest**<br>
-![IRequest](images/n2-components/IRequest.png)
+![IRequest](images/IRequest.png)
 > Papel: Interface requerida que pede por dados de produtos e clientes na forma de lista.
 
 Método | Objetivo
@@ -380,7 +394,7 @@ Método | Objetivo
 `getProcessedRequests` | `pede por uma lista de dados pré-processados`.
 
 **Inteface IRequestProductList**<br>
-![IRequestProductList](images/n2-components/IRequestProductList.png)
+![IRequestProductList](images/IRequestProductList.png)
 > Papel: Interface provida que fornece um array de produtos, para que seja usado como array de referência.
 
 Método | Objetivo
@@ -389,7 +403,7 @@ Método | Objetivo
 
 
 **Inteface IRequestCustomerList**<br>
-![IRequestCustomerList](images/n2-components/IRequestCustomerList.png)
+![IRequestCustomerList](images/IRequestCustomerList.png)
 > Papel: Interface provida que fornece um array de customeId, para que seja usado na montagem de mensagens de campanhas de desconto. 
 
 Método | Objetivo
@@ -400,7 +414,7 @@ Método | Objetivo
 **Componente ProcessStoreOffer**<br>
 > Papel: é responsável por processar cada uma das ofertas feitas por lojas, e separar e agrupar/destacar os produtos, dados da loja e dados da campanha contidos nas ofertas.
 
-![ProcessStoreOffer](images/n2-components/ProcessStoreOffer.png)
+![ProcessStoreOffer](images/ProcessStoreOffer.png)
 
 ## Interfaces:
 > IOffer<br>
@@ -410,7 +424,7 @@ Método | Objetivo
 
 ## Detalhamento das Interfaces
 **Inteface IOffer**<br>
-![IOffer](images/n2-components/IOffer.png)
+![IOffer](images/IOffer.png)
 > Papel: Interface requerida que pede por ofertas de cada loja.
 
 Método | Objetivo
@@ -418,7 +432,7 @@ Método | Objetivo
 `requestOffer` | `pede por uma oferta de um lojista`.
 
 **Inteface IOfferProductList**<br>
-![IOfferProductList](images/n2-components/IOfferProductList.png)
+![IOfferProductList](images/IOfferProductList.png)
 > Papel: Interface provida que fornece a lista de produtos ofertados por `n` lojas.
 
 Método | Objetivo
@@ -426,7 +440,7 @@ Método | Objetivo
 `getOfferProductList` | `fornece uma lista de produtos ofertados pelas lojas`.
 
 **Inteface IOfferStoreDataList**<br>
-![IOfferStoreDataList](images/n2-components/IOfferStoreDataList.png)
+![IOfferStoreDataList](images/IOfferStoreDataList.png)
 > Papel: Interface provida que fornece a lista de dados referente às lojas.
 
 Método | Objetivo
@@ -434,7 +448,7 @@ Método | Objetivo
 `getOfferStoreIdList` | `fornece uma lista que contém strings compostas por id da loja storeId, número de unidades inStock do produto e valor com desconto ofertado salesPrice`
 
 **Inteface IOfferCampaignDataList**<br>
-![IOfferCampaignDataList](images/n2-components/IOfferCampaignDataList.png)
+![IOfferCampaignDataList](images/IOfferCampaignDataList.png)
 > Papel: Interface provida que fornece a data final da campanha.
 
 Método | Objetivo
@@ -444,7 +458,7 @@ Método | Objetivo
 **Componente RankOffersBasedOnReference**<br>
 > Papel: é responsável fornecer uma lista de ofertas ranqueadas, de acordo com operações de IA .
 
-![ProcessStoreOffer](images/n2-components/RankOffersBasedOnReference.png)
+![ProcessStoreOffer](images/RankOffersBasedOnReference.png)
 
 ## Interfaces:
 > IRankedProducts<br>
@@ -452,7 +466,7 @@ Método | Objetivo
 ## Detalhamento das Interfaces
 
 **Inteface IRankedProducts**<br>
-![IRankedProducts](images/n2-components/IRankedProducts.png)
+![IRankedProducts](images/IRankedProducts.png)
 > Papel: Interface provida que fornece a lista final de produtos rankeados por IA.
 
 Método | Objetivo
@@ -462,7 +476,7 @@ Método | Objetivo
 **Componente AssembleOnSales**<br>
 > Papel: é responsável fornecer a mensagens de campanha de ofertas que será recebida por clientes.
 
-![ProcessStoreOffer](images/n2-components/AssembleOnSales.png)
+![ProcessStoreOffer](images/AssembleOnSales.png)
 
 ## Interfaces:
 > ProvideRankedOffers<br>
@@ -470,7 +484,7 @@ Método | Objetivo
 ## Detalhamento das Interfaces
 
 **Inteface ProvideRankedOffers**<br>
-![ProvideRankedOffers](images/n2-components/ProvideRankedOffers.png)
+![ProvideRankedOffers](images/ProvideRankedOffers.png)
 > Papel: Interface provida que fornece a mensagem final que será enviada aos clientes.
 
 Método | Objetivo
