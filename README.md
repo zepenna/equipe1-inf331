@@ -241,7 +241,7 @@
 
 
 **Componente Customer**
-> Papel: O componente `Customer` é através da interface `ReceiveRankedOffers` e com a assinatura do tópico `campaign/+/provideoffers`, ler a lista de ofertas do barramento, e através da interface `RequestProducts`, envia para o barramento mensagens com o tópico `{customeId}/requestproduct` representanado o interesse do consumidor por determinado produto.
+> Papel: O componente `Customer` tem a função de, através da interface `ReceiveRankedOffers` e fazendo a assinatura do tópico `campaign/+/provideoffers`, ler a lista de ofertas disponibilizadas no barramento. Além disso, através da interface `RequestProducts`, enviam para o barramento mensagens que reprensentam o interesse do consumidor por determinado produto, utilizando o tópico `{customeId}/requestproduct`.
 
 ![OfferDistribution](images/Customer.png)
 
