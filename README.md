@@ -17,15 +17,15 @@
 > O diagrama escolhido para análise foi o **Diagrama do Processo de Distribuição de Ofertas**.<br>
 
 ## Detalhamento de interação de componentes
-* O componente `Customer{n}` envia para o barramento de mensagens do tipo `Request` pelo tópico `{customerId/requestproduct}` através da interface `ReceiveProcessedRequests`.
+* O componente `Customer{n}` envia para o barramento de mensagens do tipo `Request` pelo tópico `{customerId}/{requestproduct}` através da interface `ReceiveProcessedRequests`.
 	*  Isso simula a ação de um cliente em demonstrar interesse por um produto (e.g. adicionar produto à uma lista de favoritos).
-* Então, tal evento é atendido por uma interface `ReceiveCustomerRequest` do componente `ProcessCutomerRequest`.
+* Então, tal evento é atendido por uma interface `ReceiveCustomerRequest` do componente `ProcessCustomerRequests`.
     * Neste ponto, o componente `ReceiveCustomerRequest` assina um tópico de mensagens do tipo `#/requestproduct`, o que faz com que ele receba os interesses por produtos `Request` dos n clientes `Customer{n}`.
-* O componente `ProcessCutomerRequest` então processa os pedidos marcados como interessantes para os cliente, montando uma lista com os {20} produtos mais desejados, juntamente com uma lista de clientes que marcaram pelo menos {1/3} da lista de produtos como interessantes.
-* Em seguida o componente `ProcessCutomerRequest` envia tal lista de produtos e clientes em uma mensagem do tipo `MWProducts`, através da inteface `ProcessedCustomerRequests` para os componentes `Campaign` e `OfferDistribution`, por meio do tópico de mensagens `products/mostwanted`.
+* O componente `ProcessCustomerRequests` então processa os pedidos marcados como interessantes para os clientes, montando uma lista com os {20} produtos mais desejados, juntamente com uma lista de clientes que marcaram pelo menos {1/3} da lista de produtos como interessantes.
+* Em seguida o componente `ProcessCustomerRequests` envia tal lista de produtos e clientes em uma mensagem do tipo `MWProducts`, através da inteface `ProcessedCustomerRequests` para os componentes `Campaign` e `OfferDistribution`, por meio do tópico de mensagens `products/mostwanted`.
     * O componente `Campaign` assina o tópico `products/mostwanted`, recebe a lista de produtos e clientes pela interface `ReceiveProcessedRequests` e então engatilha o início de uma nova campanha de ofertas por meio da interface `CampaignStart`, com o tópico de mensagens `campaign/{campaignId}/notification`.
     * Já o componente `OfferDistribution` recebe a lista anteriormente citada, também usando a interface `ReceiveProcessedRequests` e tópico `products/mostwanted`, e a usa como lista de referência para operação de IA.
-* Pela interface `CampaingEngage` e o tópico `campaign/{campaignId}/notification` os componentes `Store{n}` entendem que há uma campanha corrente e que podem enviar lançes promocionais de seus produtos em mensagens do tipo `Offer`, através da interface `MakeOffer`, pelo tópico `campaign/{campaignId}/makeoffer/{offerId}`.
+* Pela interface `CampaingEngage` e o tópico `campaign/{campaignId}/notification` os componentes `Store{n}` entendem que há uma campanha corrente e que podem enviar lances promocionais de seus produtos em mensagens do tipo `Offer`, através da interface `MakeOffer`, pelo tópico `campaign/{campaignId}/makeoffer/{offerId}`.
 * As mensagens do tipo `Offer` são enviadas para o barramento e lidas pelo componente `OfferDistribuition` que assina o tópico `campaign/+/makeoffer/+`.
 * Em posse das ofertas feitas por cada uma das n lojas, o componente `OfferDistribuition` monta uma lista de produtos em ofertas, a compara com a lista de produtos mais desejados pelos clientes e por meio de operações de IA ranqueia as ofertas das lojas e monta uma nova lista de ofertas ranqueadas e clientes em uma mensagem to tipo `OnSales`.
 * Após isso o componente `OfferDistribuition` envia a mensagem `OnSales` para o barramento utilizando o tópico `campaign/{campaignId}/provideoffers`, que é assinado pelos clientes utilizando o tópico `campaign/+/provideoffers`, finalizando assim o processo de distribuição de ofertas.
@@ -43,7 +43,7 @@
 
 ## Detalhamento das Interfaces
 
-**Inteface ReceiveCustomerRequests<**
+**Inteface ReceiveCustomerRequests**
 
 > Papel: Interface que recebe requests/interesse de produtos de {n} clientes do barramento, através da da assinatura do tópico `#/requestproduct`.
 
@@ -58,7 +58,7 @@
   products:
     [
       productId: string
-]
+  ]
 }
 
 ~~~
@@ -98,7 +98,7 @@
 
 ## Detalhamento das Interfaces
 
-**Inteface ReceiveProcessedRequests<**
+**Inteface ReceiveProcessedRequests**
 
 > Papel: Interface que recebe do barramento a lista de produtos mais desejados da (última quinzena), juntamente com a lista de consumidores interessados por pelo menos 1/3 dos produtos listados, através da assinatura do tópico `products/mostwanted`.
 
@@ -298,7 +298,7 @@
   products:
     [
       productId: string
-]
+  ]
 }
 
 ~~~
@@ -365,7 +365,7 @@
 	* A lista de clientes fornecida pela interface `IRequestCustomerList` é enviada para o componente `AssembleOnSales` que montará mensagens do tipo `OnSale`, que serão enviadas para o barramento com o tópico `campaign/{campaignId}/provideoffers`.
 * O componente `OfferDistribution` também assina o barramento de mensagens de tópico `campaign/+/makeoffer/+` através da interface `ReceiveOffer`
 	* Através da mensagem de tópico `campaign/+/makeoffer/+`, que chega na interface requerida `IOffer` do componente interno `ProcessStoreOffer`, o componente `OfferDistribution` recebe cada uma das ofertas, no tipo de mensagem `Offer`, feitas pelas lojas que escrevem no barramento através do tópico `campaign/{campaignId}/makeoffer/{offerId}`.
-* Esse evento faz com o componente `ProcessStoreOffer`, monte/agrupe um array produtos em oferta, monte/agrupe um array que contém dados das lojas ofertantes, e separe os dados da campanha, e os forneça respectivamente nas interfaces: `IOfferProductList`, `IOfferStoreDataList` e `IOfferCapaignDataList`.
+* Esse evento faz com o componente `ProcessStoreOffer`, monte/agrupe um array de produtos em oferta, monte/agrupe um array que contém dados das lojas ofertantes, e separe os dados da campanha, e os forneça respectivamente nas interfaces: `IOfferProductList`, `IOfferStoreDataList` e `IOfferCapaignDataList`.
 	* O array de produtos em oferta é enviado para o componente `RankOffersBasedOnReference`, através da interface provida `IOfferProductList` para que alimente as operações de IA mencionadas anteriormente.
 * O array de informação das lojas ofertantes e os dados da campanha são enviados para o componente `AssembleOnSales`, para que sejam incorporados nas mensagens do tipo `OnSales` como dito anteriormente
 * A lista de produtos separados/rankeados pelo componente `RankOfferBasedOnReference` também é enviado para o componente `AssembleOnSales`, para que também seja acrescentado à mensagem do tipo `OnSale`
@@ -404,11 +404,11 @@ Método | Objetivo
 
 **Inteface IRequestCustomerList**<br>
 ![IRequestCustomerList](images/IRequestCustomerList.png)
-> Papel: Interface provida que fornece um array de customeId, para que seja usado na montagem de mensagens de campanhas de desconto. 
+> Papel: Interface provida que fornece um array de customerId, para que seja usado na montagem de mensagens de campanhas de desconto.
 
 Método | Objetivo
 -------| --------
-`getCustomerList` | `fornece um array de produtos`.
+`getCustomerList` | `fornece um array de customer`.
 
 
 **Componente ProcessStoreOffer**<br>
@@ -504,14 +504,14 @@ Método | Objetivo
 
 ### Detalhamento da interação de componentes
 
-* O componente GetProductsCampaignList recebe os produtos passíveis de receberem ofertas por lojistas cadastrados no marketplace. Ele disponibiliza os produtos obtidos através da interface IProductsCampaignList.
+* O componente `GetProductsCampaignList` recebe os produtos passíveis de receberem ofertas por lojistas cadastrados no marketplace. Ele disponibiliza os produtos obtidos através da interface `IProductsCampaignList`.
 
-* O componente ComputeProductData é responsável por ler os produtos recebidos e gerar modelos compatíveis com os componentes da GUI. Ele ainda inicia o evento que irá listar os produtos disponíveis para oferta na interface gráfica. Além disso, esse componente permite que se pesquise por um produto, por categoria ou palavra-chave, retornando os modelos que correspondam aos critérios de busca.
+* O componente `ComputeProductData` é responsável por ler os produtos recebidos e gerar modelos compatíveis com os componentes da GUI. Ele ainda inicia o evento que irá listar os produtos disponíveis para oferta na interface gráfica. Além disso, esse componente permite que se pesquise por um produto, por categoria ou palavra-chave, retornando os modelos que correspondam aos critérios de busca.
 
-* O componente ProductComponent é o responsável por exibir as informações dos produtos. Além disso, ele possui componentes internos que permitem receber os inputs necessários para que o lojista realize uma oferta, sendo eles o valor e a quantidade de produtos. Este componente possui ainda um botão como componente interno, que dispara o evento de envio de oferta.
+* O componente `ProductComponent` é o responsável por exibir as informações dos produtos. Além disso, ele possui componentes internos que permitem receber os inputs necessários para que o lojista realize uma oferta, sendo eles o valor e a quantidade de produtos. Este componente possui ainda um botão como componente interno, que dispara o evento de envio de oferta.
 
-* O evento de envio de oferta é recebido pelo componente SendOffer, que receberá os dados inputados pelo lojista, relacionado com a sua oferta. Além disso, para que a oferta seja criada, é necessário que esse componente busque as informações do lojista autenticado, utilizando a interface provida pelo componente GetUserInfo. Após a obtenção dos dados do lojista autenticado e dos inputs da oferta, o componente é reponsável por publicar a oferta no barramento, enviando uma mensagem do tipo 'offer' para o tópico 'campaign/+/makeoffer/+'
+* O evento de envio de oferta é recebido pelo componente `SendOffer`, que receberá os dados inputados pelo lojista, relacionado com a sua oferta. Além disso, para que a oferta seja criada, é necessário que esse componente busque as informações do lojista autenticado, utilizando a interface provida pelo componente `GetUserInfo`. Após a obtenção dos dados do lojista autenticado e dos inputs da oferta, o componente é reponsável por publicar a oferta no barramento, enviando uma mensagem do tipo `Offer` para o tópico `campaign/+/makeoffer/+`
 
-* Tem-se ainda o componente GetUserInfo que recebe as informações do usuário lojista autenticado de um componente externo. Essas informações são expostas através da interface IUserInfo, permitindo que o componente de envio de oferta (SendOffer), consuma esses dados para conseguir enviar uma oferta com sucesso.
+* Tem-se ainda o componente `GetUserInfo` que recebe as informações do usuário lojista autenticado de um componente externo. Essas informações são expostas através da interface `IUserInfo`, permitindo que o componente de envio de oferta (`SendOffer`), consuma esses dados para conseguir enviar uma oferta com sucesso.
 
 * Por fim há ainda dois componentes na interface que permitem filtros da lista de produtos. O primeiro deles permite filtros por categoria e o segundo permite filtros por palavra-chave.
