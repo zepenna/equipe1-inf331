@@ -74,7 +74,6 @@
 **Componente Campaign**
 
 
-
 > Papel: O componente `Campaign` recebe do barramento a lista de produtos mais desejados da (última quinzena), juntamente com a lista de consumidores interessados por pelo menos 1/3 dos produtos listados, através da assinatura do tópico `products/mostwanted` e da interface `ReceiveProcessedRequests`, e retorna para o barramento a solicitação do início de uma nova campanha de ofertas, através da interface `CampaignStart`.  
 
 ![Campaign](images/n2-components/Campaign.png)
@@ -129,10 +128,6 @@
 
 
 
-
-
-
-
 **Inteface ReceiveOffer**
 
 > Papel: Interface que lê a offer do barramento, recebendo uma oferta de desconto das stores{n}.
@@ -150,7 +145,6 @@
     inStock: number
 }
 ~~~
-
 
 **Componente OfferDistribution**
 > Papel: O componente `OfferDistribution` recebe a lista de produtos mais desejados pelos clientes do Marketplace por meio da assinatura do tópico `products/mostwanted`, presente na interface `ReceiveProcessedRequests`. Ele ainda possui a responsabilidade enviar a mensagem de ofertas aos clientes através do tópico `campaign/campaignId/provideoffers` na interface `ProvideRankedOffers`. Por fim, por meio da interface `ReceiveOffer`, o componente assina o tópico `campaign/+/makeoffer/+` para receber as ofertas enviadas pelas lojas.
@@ -229,6 +223,70 @@
     salesPrice: number,
     inStock: number
 }
+~~~
+
+
+**Componente Customer**
+> Papel: O componente `Customer` é através da interface `ReceiveRankedOffers` e com a assinatura do tópico `campaign/+/provideoffers`, ler a lista de ofertas do barramento, e através da interface `RequestProducts`, envia para o barramento mensagens com o tópico `{customeId}/requestproduct` representanado o interesse do consumidor por determinado produto.
+
+![OfferDistribution](images/n2-components/Customer.png)
+
+## Interfaces:
+> ReceiveRankedOffers<br>
+> RequestProducts<br>
+
+## Detalhamento das Interfaces
+
+**Inteface ReceiveRankedOffers**
+
+> Papel: Interface que lê do barramento a lista de ofertas do barramento, através da assinatura do tópico `campaign/+/provideoffers`.
+
+![ReceiveRankedOffers](images/n2-components/ReceiveRankedOffers.png)
+
+> Mensagem JSON utilizada na interface:
+
+
+**OnSales**
+~~~json
+{
+    customers: [
+        customerId: string
+    ],
+    products: [
+        {
+         productId: string
+         store: {
+             storeId: string,
+             inStock: number,
+             salesPrice: number
+
+         }
+        }
+    ],
+    endDate: date
+}
+~~~
+
+
+
+**Inteface RequestProducts**
+
+> Papel: Interface que envia para o barramento mensagens com o tópico `{customeId}/requestproduct` representanado o interesse do consumidor por determinado produto.
+
+![RequestProducts](images/n2-components/RequestProducts.png)
+
+> Mensagem JSON utilizada na interface:
+
+**Request**
+~~~json
+{
+  customerId: string,
+  products:
+    [
+      productId: string
+]
+}
+
 ~~~
 
 **Componente Store**
